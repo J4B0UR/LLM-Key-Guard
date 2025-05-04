@@ -51,7 +51,6 @@ class KeyFinding:
     line_number: Optional[int] = None
     file_path: Optional[str] = None
     valid: Optional[bool] = None
-    revoked: Optional[bool] = None
 
 
 # Regex patterns for different providers
@@ -290,6 +289,5 @@ def looks_like_key(text: str, line_number: Optional[int] = None,
                 context=context,
                 line_number=line_number,
                 file_path=file_path,
-                valid=None,
-                revoked=None
+                valid=None
             ) 

@@ -20,7 +20,7 @@ from llm_key_guard.detectors import Confidence, KeyFinding, Provider
 def create_console_report(
     findings: List[KeyFinding],
     validated: bool = False,
-    min_confidence: Confidence = Confidence.LOW,
+    min_confidence: Optional[Confidence] = None,
     file: Optional[TextIO] = None
 ) -> None:
     """Create a rich console report of findings.
@@ -28,16 +28,19 @@ def create_console_report(
     Args:
         findings: List of KeyFinding objects
         validated: Whether keys have been validated
-        min_confidence: Minimum confidence level to include
+        min_confidence: Optional minimum confidence level to include
         file: Optional file to write to
     """
     console = Console(file=file)
     
     # Filter by confidence
-    filtered_findings = [
-        f for f in findings 
-        if f.confidence >= min_confidence
-    ]
+    if min_confidence:
+        filtered_findings = [
+            f for f in findings 
+            if f.confidence >= min_confidence
+        ]
+    else:
+        filtered_findings = findings
     
     # Group by provider
     providers = {}
@@ -163,75 +166,59 @@ def create_console_report(
 def create_json_report(
     findings: List[KeyFinding],
     output_file: str,
-    min_confidence: Confidence = Confidence.LOW
+    min_confidence: Optional[Confidence] = None
 ) -> None:
     """Create a JSON report of findings.
     
     Args:
         findings: List of KeyFinding objects
         output_file: File to write JSON report to
-        min_confidence: Minimum confidence level to include
+        min_confidence: Optional minimum confidence level to include
     """
-    # Filter by confidence
-    filtered_findings = [
-        f for f in findings 
-        if f.confidence >= min_confidence
-    ]
-    
-    # Convert findings to dictionaries
+    # Filter by confidence if provided
+    if min_confidence:
+        filtered_findings = [f for f in findings if f.confidence >= min_confidence]
+    else:
+        filtered_findings = findings
+        
+    # Convert to dictionary for JSON serialization
     report_data = {
         "timestamp": datetime.now().isoformat(),
         "summary": {
             "total": len(filtered_findings),
             "valid": sum(1 for f in filtered_findings if f.valid is True),
-            "revoked": sum(1 for f in filtered_findings if f.revoked is True),
             "by_provider": {},
-            "by_confidence": {}
         },
         "findings": []
     }
     
-    # Build summary
+    # Group by provider
     for finding in filtered_findings:
         provider = finding.provider.value
-        confidence = finding.confidence.value
         
-        # Update provider summary
+        # Initialize provider if not exists
         if provider not in report_data["summary"]["by_provider"]:
             report_data["summary"]["by_provider"][provider] = {
-                "total": 0, "valid": 0, "revoked": 0
+                "total": 0,
+                "valid": 0,
             }
-        
+            
+        # Increment provider counters
         report_data["summary"]["by_provider"][provider]["total"] += 1
         
         if finding.valid is True:
             report_data["summary"]["by_provider"][provider]["valid"] += 1
             
-        if finding.revoked is True:
-            report_data["summary"]["by_provider"][provider]["revoked"] += 1
-        
-        # Update confidence summary
-        if confidence not in report_data["summary"]["by_confidence"]:
-            report_data["summary"]["by_confidence"][confidence] = 0
-        report_data["summary"]["by_confidence"][confidence] += 1
-        
         # Add finding details
-        finding_data = {
-            "provider": finding.provider.value,
-            "key_prefix": finding.key[:8],  # Only include prefix for security
-            "confidence": finding.confidence.value,
+        report_data["findings"].append({
+            "provider": provider,
+            "confidence": str(finding.confidence),
+            "key_fragment": finding.key[:4] + "..." + finding.key[-4:],
+            "file_path": finding.file_path,
+            "line_number": finding.line_number,
             "context": finding.context,
             "valid": finding.valid,
-            "revoked": finding.revoked
-        }
-        
-        if finding.file_path:
-            finding_data["file_path"] = finding.file_path
-            
-        if finding.line_number:
-            finding_data["line_number"] = finding.line_number
-            
-        report_data["findings"].append(finding_data)
+        })
     
     # Write to file
     with open(output_file, "w") as f:
@@ -245,7 +232,7 @@ def post_slack_report(
     findings: List[KeyFinding],
     slack_token: str,
     channel: str,
-    min_confidence: Confidence = Confidence.LOW
+    min_confidence: Optional[Confidence] = None
 ) -> bool:
     """Post a report to Slack.
     
@@ -253,21 +240,20 @@ def post_slack_report(
         findings: List of KeyFinding objects
         slack_token: Slack API token
         channel: Channel to post to (with or without #)
-        min_confidence: Minimum confidence level to include
+        min_confidence: Optional minimum confidence level to include
         
     Returns:
         True if successful, False otherwise
     """
-    # Filter by confidence
-    filtered_findings = [
-        f for f in findings 
-        if f.confidence >= min_confidence
-    ]
+    # Filter by confidence if provided
+    if min_confidence:
+        filtered_findings = [f for f in findings if f.confidence >= min_confidence]
+    else:
+        filtered_findings = findings
     
     # Prepare summary
     total_count = len(filtered_findings)
     valid_count = sum(1 for f in filtered_findings if f.valid is True)
-    revoked_count = sum(1 for f in filtered_findings if f.revoked is True)
     
     # Group by provider
     providers = {}
@@ -302,10 +288,6 @@ def post_slack_report(
                 {
                     "type": "mrkdwn",
                     "text": f"*Valid Keys:* {valid_count}"
-                },
-                {
-                    "type": "mrkdwn",
-                    "text": f"*Revoked Keys:* {revoked_count}"
                 }
             ]
         },
@@ -317,13 +299,12 @@ def post_slack_report(
     # Add provider summaries
     for provider, provider_findings in providers.items():
         provider_valid = sum(1 for f in provider_findings if f.valid is True)
-        provider_revoked = sum(1 for f in provider_findings if f.revoked is True)
         
         blocks.append({
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*{provider.value}*: {len(provider_findings)} keys found, {provider_valid} valid, {provider_revoked} revoked"
+                "text": f"*{provider.value}*: {len(provider_findings)} keys found, {provider_valid} valid"
             }
         })
     
@@ -334,14 +315,6 @@ def post_slack_report(
             "text": {
                 "type": "mrkdwn",
                 "text": "🚨 *ACTION REQUIRED*: Valid API keys were found that should be revoked immediately."
-            }
-        })
-    elif total_count > 0:
-        blocks.append({
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": "⚠️ *WARNING*: Potential API keys were found but none appear to be valid."
             }
         })
     else:
@@ -407,7 +380,7 @@ def post_slack_report(
             json={
                 "channel": channel,
                 "blocks": blocks,
-                "text": f"LLM Key Guard found {total_count} potential API keys, {valid_count} valid, {revoked_count} revoked."
+                "text": f"LLM Key Guard found {total_count} potential API keys, {valid_count} valid."
             }
         )
         

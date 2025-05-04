@@ -22,7 +22,6 @@ from llm_key_guard import __version__
 from llm_key_guard.detectors import Confidence, KeyFinding, Provider
 from llm_key_guard.scanner import SlackScanner, scan_directory, scan_github_actions, scan_git_history, scan_git_branch_comparison
 from llm_key_guard.validator import KeyValidator
-from llm_key_guard.revoker import create_env_template
 from llm_key_guard.reporter import create_console_report, create_json_report, post_slack_report
 from llm_key_guard.utils import load_config, normalize_path, validate_env_file
 from llm_key_guard.banners import print_main_banner, print_command_banner
@@ -718,8 +717,71 @@ def setup(
             console.print(f"[bold red]Error:[/bold red] Invalid target directory: {target_path}")
             return
             
-    # Create the ENV template file
-    env_template_file = create_env_template()
+    # Create template .env file
+    env_template_content = """# LLM Key Guard - API Keys Configuration
+# 
+# This file contains configuration for API keys used to validate detected keys.
+# Fill in your API keys below to enable validation.
+
+# OpenAI API key
+OPENAI_API_KEY=your_openai_key_here
+
+# Anthropic API key
+ANTHROPIC_API_KEY=your_anthropic_key_here
+
+# Google (Gemini) API key
+GOOGLE_API_KEY=your_google_key_here
+
+# Hugging Face API key
+HUGGINGFACE_API_KEY=your_huggingface_key_here
+
+# Azure OpenAI Key
+AZURE_OPENAI_API_KEY=your_azure_openai_key_here
+
+# Cohere API Key
+COHERE_API_KEY=your_cohere_key_here
+
+# Mistral API Key
+MISTRAL_API_KEY=your_mistral_key_here
+
+# Stability AI Key
+STABILITY_API_KEY=your_stability_key_here
+
+# Replicate API Token
+REPLICATE_API_TOKEN=your_replicate_token_here
+
+# Clarifai API Key
+CLARIFAI_API_KEY=your_clarifai_key_here
+
+# Together API Key
+TOGETHER_API_KEY=your_together_key_here
+
+# AI21 API Key
+AI21_API_KEY=your_ai21_key_here
+
+# DeepInfra API Key
+DEEPINFRA_API_KEY=your_deepinfra_key_here
+
+# Groq API Key
+GROQ_API_KEY=your_groq_key_here
+"""
+    
+    # Write the .env.example file
+    env_template_file = ".env.example"
+    with open(env_template_file, "w") as f:
+        f.write(env_template_content)
+    
+    console.print(f"\n[green]✓ Created {env_template_file}[/green]")
+    
+    # Copy to .env if it doesn't exist
+    env_file = ".env"
+    if not os.path.exists(env_file) or force:
+        with open(env_file, "w") as f:
+            f.write(env_template_content)
+        console.print(f"[green]✓ Created {env_file}[/green]")
+    else:
+        console.print(f"[yellow]! {env_file} already exists (use --force to overwrite)[/yellow]")
+    
     console.print(f"\n[green]Setup completed![/green]")
     
     # Check and validate .env file if it exists

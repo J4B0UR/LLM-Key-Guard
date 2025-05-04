@@ -96,7 +96,7 @@ def _create_html_header(title: str) -> str:
             color: #7f8c8d;
         }}
         .revoked {{
-            color: #27ae60;
+            color: #7E57C2;
             font-weight: bold;
         }}
         .unknown {{
@@ -194,208 +194,207 @@ def _create_html_footer() -> str:
 """
 
 
-def _create_summary_section(findings: List[KeyFinding], validated: bool = False, revoked: bool = False) -> str:
-    """Create HTML summary section."""
+def _create_summary_section(findings: List[KeyFinding], validated: bool = False) -> str:
+    """Create the HTML summary section.
+    
+    Args:
+        findings: List of KeyFinding objects
+        validated: Whether keys were validated
+        
+    Returns:
+        HTML string for the summary section
+    """
     total_count = len(findings)
     valid_count = sum(1 for f in findings if f.valid is True) if validated else None
-    revoked_count = sum(1 for f in findings if f.revoked is True) if revoked else None
     
-    # Group by provider
-    providers = {}
-    for finding in findings:
-        if finding.provider not in providers:
-            providers[finding.provider] = []
-        providers[finding.provider].append(finding)
-    
-    # Create summary cards
+    # Add summary banner
     summary_html = """
+    <div class="summary-section">
+        <h2>Key Detection Summary</h2>
+        <h3>Overview</h3>
         <div class="summary">
-            <div class="summary-card">
-                <h3>Total Keys</h3>
-                <p>{}</p>
-            </div>
+    """
+    
+    # Add general summary
+    summary_html += """
+        <div class="summary-card">
+            <h3>Total Keys</h3>
+            <div class="summary-count">{}</div>
+        </div>
     """.format(total_count)
     
     if validated:
         summary_html += """
-            <div class="summary-card">
-                <h3>Valid Keys</h3>
-                <p>{}</p>
-            </div>
+        <div class="summary-card">
+            <h3>Valid Keys</h3>
+            <div class="summary-count">{}</div>
+        </div>
         """.format(valid_count or 0)
-    
-    if revoked:
-        summary_html += """
-            <div class="summary-card">
-                <h3>Revoked Keys</h3>
-                <p>{}</p>
-            </div>
-        """.format(revoked_count or 0)
     
     summary_html += """
         </div>
     """
-    
-    # Create provider summary table
+
+    # Add provider specific tables
     summary_html += """
-        <h2>Provider Summary</h2>
+    <div class="summary-tables">
+        <h3>Provider Breakdown</h3>
         <table>
             <tr>
                 <th>Provider</th>
                 <th>Total</th>
+                <th>Confidence</th>
     """
     
     if validated:
         summary_html += "<th>Valid</th>"
-    if revoked:
-        summary_html += "<th>Revoked</th>"
     
-    summary_html += "</tr>"
+    summary_html += """
+            </tr>
+    """
     
-    for provider, provider_findings in providers.items():
+    # Group findings by provider
+    providers = {}
+    for finding in findings:
+        provider = finding.provider.value
+        if provider not in providers:
+            providers[provider] = []
+        providers[provider].append(finding)
+    
+    for provider, provider_findings in sorted(providers.items()):
         provider_valid = sum(1 for f in provider_findings if f.valid is True) if validated else None
-        provider_revoked = sum(1 for f in provider_findings if f.revoked is True) if revoked else None
+        
+        # Get the average confidence
+        confidence_values = [f.confidence for f in provider_findings]
+        avg_confidence = sum(int(c) for c in confidence_values) / len(confidence_values)
+        confidence_text = Confidence(int(avg_confidence)).__str__()
         
         summary_html += f"""
             <tr>
-                <td>{provider.value}</td>
+                <td>{provider}</td>
                 <td>{len(provider_findings)}</td>
+                <td>{confidence_text}</td>
         """
         
         if validated:
             summary_html += f"<td>{provider_valid or 0}</td>"
-        if revoked:
-            summary_html += f"<td>{provider_revoked or 0}</td>"
         
-        summary_html += "</tr>"
+        summary_html += """
+            </tr>
+        """
     
-    # Add total row
-    summary_html += f"""
-            <tr>
-                <td><strong>TOTAL</strong></td>
-                <td><strong>{total_count}</strong></td>
-    """
+    summary_html += """
+            <tr class="total-row">
+                <td><strong>Total</strong></td>
+                <td><strong>{}</strong></td>
+                <td>-</td>
+    """.format(total_count)
     
     if validated:
         summary_html += f"<td><strong>{valid_count or 0}</strong></td>"
-    if revoked:
-        summary_html += f"<td><strong>{revoked_count or 0}</strong></td>"
     
     summary_html += """
             </tr>
         </table>
+    </div>
     """
     
-    # Add alert based on findings
-    if valid_count:
+    # Add risk assessment
+    if validated and valid_count and valid_count > 0:
         summary_html += """
-            <div class="alert alert-danger">
+        <div class="risk-warning">
+            <div class="risk-title">⚠️ HIGH RISK</div>
+            <div class="risk-message">
                 <strong>ACTION REQUIRED:</strong> Valid API keys were found that should be revoked immediately.
             </div>
-        """
-    elif total_count > 0:
-        summary_html += """
-            <div class="alert alert-warning">
-                <strong>WARNING:</strong> Potential API keys were found but none appear to be valid.
-            </div>
-        """
-    else:
-        summary_html += """
-            <div class="alert alert-success">
-                <strong>ALL CLEAR:</strong> No API keys were found.
-            </div>
+        </div>
         """
     
+    summary_html += """
+    </div>
+    """
     return summary_html
 
 
-def _create_findings_section(findings: List[KeyFinding], validated: bool = False, revoked: bool = False) -> str:
-    """Create HTML findings section."""
-    if not findings:
-        return """
-            <h2>Detailed Findings</h2>
-            <p>No findings to display.</p>
-        """
+def _create_findings_section(findings: List[KeyFinding], validated: bool = False) -> str:
+    """Create the HTML findings section.
     
-    # Group by provider
-    providers = {}
-    for finding in findings:
-        if finding.provider not in providers:
-            providers[finding.provider] = []
-        providers[finding.provider].append(finding)
-    
+    Args:
+        findings: List of KeyFinding objects
+        validated: Whether keys were validated
+        
+    Returns:
+        HTML string for the findings section
+    """
     findings_html = """
-        <h2>Detailed Findings</h2>
+    <div class="findings-section">
+        <h2>Detected API Keys</h2>
+        <table class="findings-table">
+            <tr>
+                <th>Provider</th>
+                <th>Confidence</th>
+                <th>Key Fragment</th>
+                <th>Location</th>
     """
     
-    for provider, provider_findings in providers.items():
-        findings_html += f"""
-            <details>
-                <summary>{provider.value} ({len(provider_findings)} keys)</summary>
-                <div class="content">
-                    <table>
-                        <tr>
-                            <th>Status</th>
-                            <th>Confidence</th>
-                            <th>Location</th>
-                            <th>Key Prefix</th>
-                            <th>Context</th>
-                        </tr>
-        """
+    if validated:
+        findings_html += "<th>Status</th>"
+    
+    findings_html += """
+            </tr>
+    """
+    
+    for finding in findings:
+        # Get key fragment for display
+        key_length = len(finding.key)
+        key_fragment = finding.key[:4] + "..." + finding.key[-4:] if key_length > 10 else finding.key
+        key_full = finding.key
         
-        for finding in provider_findings:
-            # Determine status and class
-            if finding.revoked is True:
-                status = "REVOKED"
-                status_class = "revoked"
-            elif finding.valid is True:
+        # Set location text
+        location_text = "N/A"
+        if finding.file_path:
+            filename = os.path.basename(finding.file_path)
+            if finding.line_number:
+                location_text = f"{filename}:{finding.line_number}"
+            else:
+                location_text = filename
+        
+        # Set status and class
+        status = "N/A"
+        status_class = ""
+        
+        if validated:
+            if finding.valid is True:
                 status = "VALID"
                 status_class = "valid"
             elif finding.valid is False:
                 status = "INVALID"
                 status_class = "invalid"
-            else:
-                status = "UNKNOWN"
-                status_class = "unknown"
-            
-            # Determine confidence class
-            if finding.confidence == Confidence.HIGH:
-                confidence_class = "badge-high"
-            elif finding.confidence == Confidence.MEDIUM:
-                confidence_class = "badge-medium"
-            else:
-                confidence_class = "badge-low"
-            
-            # Format location
-            location = ""
-            if finding.file_path:
-                location = finding.file_path
-                if finding.line_number:
-                    location += f":{finding.line_number}"
-            
-            # Format context (ensure HTML safety)
-            context = finding.context
-            context = context.replace("<", "&lt;").replace(">", "&gt;")
-            
-            # Get key prefix (only first 8 chars for security)
-            key_prefix = finding.key[:8] + "..." if finding.key else ""
-            
-            findings_html += f"""
-                <tr>
-                    <td class="{status_class}">{status}</td>
-                    <td><span class="badge {confidence_class}">{finding.confidence}</span></td>
-                    <td>{location}</td>
-                    <td><code class="key-prefix">{key_prefix}</code></td>
-                    <td class="context">{context}</td>
-                </tr>
-            """
+        
+        findings_html += f"""
+            <tr class="finding">
+                <td>{finding.provider.value}</td>
+                <td>{finding.confidence}</td>
+                <td class="key-fragment" title="{key_full}">{key_fragment}</td>
+                <td>{location_text}</td>
+        """
+        
+        if validated:
+            findings_html += f'<td class="{status_class}">{status}</td>'
         
         findings_html += """
-                    </table>
-                </div>
-            </details>
-        """
+            </tr>
+            <tr class="context-row">
+                <td colspan="{}">
+                    <pre class="context">{}</pre>
+                </td>
+            </tr>
+        """.format("5" if validated else "4", finding.context)
     
+    findings_html += """
+        </table>
+    </div>
+    """
     return findings_html
 
 
@@ -403,32 +402,30 @@ def create_html_report(
     findings: List[KeyFinding],
     output_file: str,
     validated: bool = False,
-    revoked: bool = False,
-    min_confidence: Confidence = Confidence.LOW,
-) -> None:
+    min_confidence: int = 1,
+) -> str:
     """Create an HTML report of findings.
     
     Args:
         findings: List of KeyFinding objects
-        output_file: File to write HTML report to
-        validated: Whether keys have been validated
-        revoked: Whether keys have been revoked
-        min_confidence: Minimum confidence level to include
+        output_file: Path to output HTML file
+        validated: Whether keys were validated
+        min_confidence: Minimum confidence level (1-3) to include
+        
+    Returns:
+        Path to created HTML file
     """
-    # Filter by confidence
-    filtered_findings = [
-        f for f in findings 
-        if f.confidence >= min_confidence
-    ]
+    # Filter findings by confidence
+    filtered_findings = [f for f in findings if int(f.confidence) >= min_confidence]
     
-    # Build HTML report
+    # Create the HTML content
     html_content = _create_html_header("LLM Key Guard Report")
-    html_content += _create_summary_section(filtered_findings, validated, revoked)
-    html_content += _create_findings_section(filtered_findings, validated, revoked)
+    html_content += _create_summary_section(filtered_findings, validated)
+    html_content += _create_findings_section(filtered_findings, validated)
     html_content += _create_html_footer()
     
     # Write to file
-    with open(output_file, "w", encoding="utf-8") as f:
+    with open(output_file, "w") as f:
         f.write(html_content)
-    
-    print(f"HTML report written to {output_file}") 
+        
+    return output_file 
