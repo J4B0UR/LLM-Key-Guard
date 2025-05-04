@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm-key-guard"
+version = "1.0.0"
+description = "Security tool to detect and validate AI API keys"
+readme = "README.md"
+authors = [
+    {name = "Gabriel Jabour", email = "gjabour@gmail.com"},
+]
+license = {text = "MIT"}
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Environment :: Console",
+    "Operating System :: OS Independent",
+    "Natural Language :: English",
+    "Typing :: Typed",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/gjabour/llm-key-guard"
+"Bug Tracker" = "https://github.com/gjabour/llm-key-guard/issues"
+"Documentation" = "https://github.com/gjabour/llm-key-guard#readme"
+"Source Code" = "https://github.com/gjabour/llm-key-guard"
+
+[tool.setuptools]
+packages = ["llm_key_guard"]
+
+[tool.setuptools.dynamic]
+version = {attr = "llm_key_guard.__version__"} 
