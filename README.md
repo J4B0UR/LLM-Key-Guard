@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  <b>LLM KEY GUARD - by Jabour</b><br>
+  <b>LLM KEY GUARD - by Gabriel Jabour</b><br>
   <i>Find exposed LLM API keys in your codebase</i>
 </p>
 
@@ -86,16 +86,11 @@ LLM Key Guard detects API keys from the following providers:
 
 ## 🚀 Installation
 
-```bash
-# Install from PyPI
-pip install llm-key-guard
-```
-
-Or clone the repository and install locally:
+Clone the repository and install locally:
 
 ```bash
 # Clone the repository
-git clone https://github.com/gjabour/llm-key-guard.git
+git clone https://github.com/J4B0UR/LLM-Key-Guard
 cd llm-key-guard
 
 # Install
