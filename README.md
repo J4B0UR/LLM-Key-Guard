@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  A powerful security tool that detects and validates exposed AI API keys in your codebase, git history, and communication channels.
+  A powerful security tool that detects and validates exposed AI API keys in your codebase.
 </p>
 
 ---
