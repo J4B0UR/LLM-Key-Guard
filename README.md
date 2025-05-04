@@ -1,15 +1,25 @@
-# LLM KEY GUARD
-
-![Version](https://img.shields.io/badge/version-1.0.0-green)
-![Python](https://img.shields.io/badge/python-3.8%2B-blue)
-![License](https://img.shields.io/badge/license-MIT-blue)
-![Developed by](https://img.shields.io/badge/developed%20by-Jabour-orange)
-
+<!-- Banner em estilo ASCII art -->
 <p align="center">
-  <img src="docs/images/logo.png" alt="LLM Key Guard Logo" width="300"/>
+  <img src="assets/banner.PNG" alt="LLM Key Guard Logo" width="100%"/>
 </p>
 
-A powerful security tool that detects and validates exposed AI API keys in your codebase, git history, and communication channels.
+<p align="center">
+  <b>LLM KEY GUARD - by Jabour</b><br>
+  <i>Find exposed LLM API keys in your codebase</i>
+</p>
+
+<p align="center">
+  <a href="#"><img src="https://img.shields.io/badge/version-1.0.0-green" alt="Version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/python-3.8+-blue" alt="Python"></a>
+  <a href="#"><img src="https://img.shields.io/badge/license-MIT-brightgreen" alt="License"></a>
+  <a href="#"><img src="https://img.shields.io/badge/developed%20by-Jabour-orange" alt="Developed by"></a>
+</p>
+
+<p align="center">
+  A powerful security tool that detects and validates exposed AI API keys in your codebase, git history, and communication channels.
+</p>
+
+---
 
 ## 📊 Alarming Statistics
 - In 2023, more than 20,000 OpenAI API keys were exposed in public GitHub repositories
@@ -237,20 +247,6 @@ For command-specific help:
 llm-key-guard [command] --help
 ```
 
-## 📊 Examples
-
-### Console Output
-
-Here's what the console report looks like:
-
-![Console Report](docs/images/console_report.png)
-
-### Slack Integration
-
-Receive security alerts directly in your Slack channels:
-
-![Slack Alert](docs/images/slack_alert.png)
-
 ## 🔄 CI/CD Integration
 
 ### GitHub Actions
@@ -309,14 +305,6 @@ Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for more detai
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for more details.
 
-## 👤 Author
-
-- **Gabriel Jabour** - *Initial work* - [gjabour](https://www.linkedin.com/in/gjabour/)
-
----
-
 <p align="center">
-  <a href="https://twitter.com/yourhandle">Twitter</a> •
   <a href="https://linkedin.com/in/yourprofile">LinkedIn</a> •
-  <a href="https://yourwebsite.com">Website</a>
 </p>
