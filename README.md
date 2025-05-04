@@ -91,7 +91,6 @@ Clone the repository and install locally:
 ```bash
 # Clone the repository
 git clone https://github.com/J4B0UR/LLM-Key-Guard
-cd llm-key-guard
 
 # Install
 pip install .

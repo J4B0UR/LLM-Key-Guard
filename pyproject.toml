@@ -1,17 +1,20 @@
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "llm-key-guard"
-version = "1.0.0"
-description = "Security tool to detect and validate AI API keys"
-readme = "README.md"
-authors = [
-    {name = "Gabriel Jabour", email = "gjabour@gmail.com"},
-]
-license = {text = "MIT"}
+name            = "llm-key-guard"
+version         = "1.0.0"
+description     = "Security tool to detect and validate AI API keys"
+readme          = "README.md"
 requires-python = ">=3.8"
+
+authors = [
+    { name = "Gabriel Jabour", email = "gjabour@gmail.com" },
+]
+
+license = { text = "MIT" }
+
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -31,14 +34,49 @@ classifiers = [
     "Typing :: Typed",
 ]
 
+dependencies = [
+    "typer>=0.12.0",
+    "rich>=10.0.0",
+    "requests>=2.25.0",
+    "tqdm>=4.60.0",
+    "pyyaml>=5.1",
+    "gitpython>=3.1.0",
+    "gitignore_parser>=0.1.12",
+    "python-dotenv>=0.19.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0.0",
+    "pytest-cov>=2.12.0",
+    "black>=21.5b2",
+    "isort>=5.9.1",
+    "flake8>=3.9.2",
+    "mypy>=0.910",
+    "pre-commit>=2.13.0",
+    "build>=0.10.0",
+    "twine>=4.0.0",
+]
+all = [
+    "pytest>=6.0.0",
+    "pytest-cov>=2.12.0",
+    "black>=21.5b2",
+    "isort>=5.9.1",
+    "flake8>=3.9.2",
+    "mypy>=0.910",
+    "pre-commit>=2.13.0",
+    "build>=0.10.0",
+    "twine>=4.0.0",
+]
+
+[project.scripts]
+llm-key-guard = "llm_key_guard.cli:main"
+
 [project.urls]
-"Homepage" = "https://github.com/gjabour/llm-key-guard"
-"Bug Tracker" = "https://github.com/gjabour/llm-key-guard/issues"
-"Documentation" = "https://github.com/gjabour/llm-key-guard#readme"
-"Source Code" = "https://github.com/gjabour/llm-key-guard"
+"Homepage"      = "https://github.com/J4B0UR/LLM-Key-Guard"
+"Bug Tracker"   = "https://github.com/J4B0UR/LLM-Key-Guard/issues"
+"Documentation" = "https://github.com/J4B0UR/LLM-Key-Guard#readme"
+"Source Code"   = "https://github.com/J4B0UR/LLM-Key-Guard"
 
 [tool.setuptools]
 packages = ["llm_key_guard"]
-
-[tool.setuptools.dynamic]
-version = {attr = "llm_key_guard.__version__"} 
