@@ -56,7 +56,7 @@ class KeyFinding:
 # Regex patterns for different providers
 PROVIDER_PATTERNS: Dict[Provider, Pattern] = {
     Provider.OPENAI: re.compile(r"(sk-[A-Za-z0-9]{48}|sk-proj-[A-Za-z0-9-_]{68,}|sk-admin-[A-Za-z0-9-_]{90,})"),
-    Provider.ANTHROPIC: re.compile(r"sk-ant-[A-Za-z0-9]{40}"),
+    Provider.ANTHROPIC: re.compile(r"^sk-ant-[A-Za-z0-9_-]{1,}$"),
     Provider.AZURE: re.compile(r"(?:azure-api-key-|api-key-azure-)[A-Za-z0-9]{32}"),
     Provider.GEMINI: re.compile(r"AIza[A-Za-z0-9_\-]{35}"),
     Provider.HUGGINGFACE: re.compile(r"hf_[A-Za-z0-9]{34}"),
