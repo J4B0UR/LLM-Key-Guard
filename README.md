@@ -22,14 +22,14 @@
 ---
 
 ## 📊 Alarming Statistics
-- In 2023, more than 20,000 OpenAI API keys were exposed in public GitHub repositories
+- In 2024, more than 20,000 OpenAI API keys were exposed in public GitHub repositories
 - Key exposures have resulted in unexpected costs of thousands of dollars for developers
 - Many teams don't realize an exposure until they receive significant charges
 
 ## ✨ Key Features
 
 ### 🔍 Detection Capabilities
-- **Multiple Sources**: Codebase, git history, and Slack channels
+- **Multiple Sources**: Codebase, git history, etc
 - **Provider Coverage**: All major AI providers (OpenAI, Anthropic, Google, etc.)
 - **Pattern Recognition**: Advanced regex patterns for accurate detection
 - **Git Integration**: Search current files, historical commits, and branch diffs
